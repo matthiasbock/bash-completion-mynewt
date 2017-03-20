@@ -1,0 +1,80 @@
+#
+# bash-completion script for Apache Mynewt
+#
+# Author: Matthias Bock <mail@matthiasbock.net>
+# License: Apache License 2.0 or GNU GPL v3 at your option
+#
+
+__newt_global_flags="-h --help -j --jobs -l --loglevel -o --outfile -q --quiet -s --silent -v --verbose"
+
+#
+# Completes common variables (and possible values) for 'newt target set <target> ...'
+#
+function __newt_target_set_variable()
+{
+    local options="app\=\@ bsp\=\@"
+
+    # is there a subfolder repos/ ?
+    if [ -e "repos/" ]; then
+        # list the available repos as arguments
+        options=$(ls repos/)
+    fi
+
+    COMPREPLY=( $(compgen -W "$options" -- ${COMP_WORDS[COMP_CWORD]}) )
+}
+
+#
+# Completes available targets for 'newt target set'
+#
+function __newt_target_set()
+{
+    local options=""
+    if [ -e "targets/" ]; then
+        options=$(ls targets/)
+    fi
+    COMPREPLY=( $(compgen -W "$options" -- ${COMP_WORDS[COMP_CWORD]}) )
+}
+
+#
+# Completes available subcommands to 'newt target'
+#
+function __newt_target()
+{
+    local options="config copy create delete dep revdep set show"
+    COMPREPLY=( $(compgen -W "$options" -- ${COMP_WORDS[COMP_CWORD]}) )
+}
+
+#
+# Completes available subcommands to 'newt'
+#
+function __newt()
+{
+    local options="build clean create-image debug help info install load mfg new pkg run size sync target test upgrade vals version"
+    COMPREPLY=( $(compgen -W "$options" -- ${COMP_WORDS[COMP_CWORD]}) )
+}
+
+#
+# Main bash completion function
+#
+function _newt()
+{
+    # completing the first argument
+    if [ $COMP_CWORD == 1 ]; then
+        __newt
+    elif [ $COMP_CWORD == 2 ]; then
+        if [ "${COMP_WORDS[1]}" == "target" ]; then
+            __newt_target
+        fi
+    elif [ $COMP_CWORD == 3 ]; then
+        if [ "${COMP_WORDS[2]}" == "set" ]; then
+            __newt_target_set
+        fi
+    elif [ $COMP_CWORD == 4 ]; then
+        if [ "${COMP_WORDS[2]}" == "set" ]; then
+            __newt_target_set_variable
+        fi
+    fi
+}
+
+# hook up main bash-completion function
+complete -F _newt newt
